@@ -3,7 +3,7 @@ const express = require('express');
 const bodyparser = require('body-parser');
 const request = require('request');
 const moment = require('moment');
-const scrapeIt = require("scrape-it")
+const scrapeIt = require('scrape-it');
 
 const app = express();
 const port = process.env.PORT || 4000;
@@ -62,6 +62,30 @@ app.post('/zip', (req, res) => {
 
   });
 });
+
+app.post('/links', (req, res) => {
+  const list = req.body.list;
+  const build = [];
+  // console.log(list);
+  const movies = list.map(movie => {
+    if (movie.link) {
+      scrapeIt(movie.link, {
+        avatar: {
+          selector: '.moviePoster img',
+          attr: 'src'
+        }
+      }, (err, { data }) => {
+        if (data.avatar) {
+          movie.image = data.avatar;
+          build.push(movie);
+        }
+        // return movie;
+      })
+    }
+
+  })
+console.log(build);
+})
 
 app.get('/movie/:rootId', (req, res) => {
   let rootId = '';
