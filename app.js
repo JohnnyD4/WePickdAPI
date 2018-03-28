@@ -65,26 +65,43 @@ app.post('/zip', (req, res) => {
 
 app.post('/links', (req, res) => {
   const list = req.body.list;
-  const build = [];
-  // console.log(list);
-  const movies = list.map(movie => {
-    if (movie.link) {
-      scrapeIt(movie.link, {
-        avatar: {
-          selector: '.moviePoster img',
-          attr: 'src'
-        }
-      }, (err, { data }) => {
-        if (data.avatar) {
-          movie.image = data.avatar;
-          build.push(movie);
-        }
-        // return movie;
-      })
-    }
+  const scrape = () => {
+    const arr = [];
+    list.map(movie => {
+      if (movie.link) {
+        scrapeIt(movie.link, {
+          avatar: {
+            selector: '.moviePoster img',
+            attr: 'src'
+          }
+        })
+        .then(({ data, response }) => {
+          if (response.statusCode !== 200) {
+            // reject('data');
+          }
+          // console.log(data);
+          if (data.avatar) {
+            movie.image = data.avatar;
+          }
+          arr.push(movie);
+          // console.log(movie);
+          // resolve(movie);
+          return movie;
+        });
+      }
+      console.log(arr);
+      return arr;
+    })
+  }
 
+  const build = async () => {
+    const test = await scrape();
+    console.log(test);
+  }
+  build().then((results) => {
+    console.log(results);
   })
-console.log(build);
+  
 })
 
 app.get('/movie/:rootId', (req, res) => {
