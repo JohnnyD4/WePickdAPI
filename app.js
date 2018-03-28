@@ -89,7 +89,7 @@ app.post('/links', (req, res) => {
           return movie;
         });
       }
-      console.log(arr);
+      console.log(arr); 
       return arr;
     })
   }
