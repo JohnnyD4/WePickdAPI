@@ -65,42 +65,79 @@ app.post('/zip', (req, res) => {
 
 app.post('/links', (req, res) => {
   const list = req.body.list;
-  const scrape = () => {
-    const arr = [];
-    list.map(movie => {
-      if (movie.link) {
-        scrapeIt(movie.link, {
+  // const scrape = () => {
+  //   const arr = [];
+  //   list.map(movie => {
+  //     if (movie.link) {
+  //       scrapeIt(movie.link, {
+  //         avatar: {
+  //           selector: '.moviePoster img',
+  //           attr: 'src'
+  //         }
+  //       })
+  //       .then(({ data, response }) => {
+  //         if (response.statusCode !== 200) {
+  //           // reject('data');
+  //         }
+  //         // console.log(data);
+  //         if (data.avatar) {
+  //           movie.image = data.avatar;
+  //         }
+  //         arr.push(movie);
+  //         // console.log(movie);
+  //         // resolve(movie);
+  //         return movie;
+  //       });
+  //     }
+  //     console.log(arr);
+  //     return arr;
+  //   })
+  // }
+
+  // const build = async () => {
+  //   const test = await scrape();
+  //   console.log(test);
+  // }
+  // build().then((results) => {
+  //   console.log(results);
+  // })
+  
+
+  const scrapeABunchOfStuff = (stuff) => {
+    Promise.all(stuff.map((thing) => {
+      if (thing.link) {
+        return scrapeIt(thing.link, {
           avatar: {
-            selector: '.moviePoster img',
+            selector: '.movie-details img',
             attr: 'src'
-          }
-        })
-        .then(({ data, response }) => {
+          },
+        }).then(({ data, response }) => {
           if (response.statusCode !== 200) {
             // reject('data');
           }
-          // console.log(data);
-          if (data.avatar) {
-            movie.image = data.avatar;
-          }
-          arr.push(movie);
-          // console.log(movie);
-          // resolve(movie);
-          return movie;
-        });
-      }
-      console.log(arr); 
-      return arr;
-    })
-  }
 
-  const build = async () => {
-    const test = await scrape();
-    console.log(test);
-  }
-  build().then((results) => {
-    console.log(results);
-  })
+          if (data.avatar) {
+            thing.image = data.avatar;
+          }
+        })
+          .then(image => {
+            Object.assign({}, thing, { image })
+            // console.log(thing);
+            return thing;
+          })
+          .catch((err) => {
+            console.error(err);
+            return thing;
+          });
+      }
+    }))
+      .then((stuffWithImages) => {
+        console.log('reach');
+        console.log('res', stuffWithImages);
+        res.send(stuffWithImages);
+      });
+  };
+  scrapeABunchOfStuff(list);
   
 })
 
