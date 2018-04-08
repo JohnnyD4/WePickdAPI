@@ -9,7 +9,7 @@ const app = express();
 const port = process.env.PORT || 4000;
 
 const model = require('./model');
-const API = process.env.API_2;
+const API = process.env.API;
 DATE = moment().format('YYYY-MM-DD');
 
 app.use(bodyparser.json());
@@ -30,7 +30,7 @@ app.post('/zip', (req, res) => {
 
     const data = JSON.parse(body);
     const build = data.map(movie => ({ id: movie.rootId, title: movie.title, link: movie.showtimes[0].ticketURI }));
-// console.log(build);
+
     const done = build.map(movie => {
       // console.log(movie.link);
       if (movie.link) {
@@ -46,15 +46,8 @@ app.post('/zip', (req, res) => {
           // console.log(movie);
           return movie;
         })
-        // .then(({ data, response }) => {
-        //   // console.log(data);
-        //   if (data.avatar) {
-        //     movie.image = data.avatar;
-        //   }
-        //   return movie;
-        // });
       }
-      // console.log(movie);
+
       return movie;
     })
     console.log(done);
@@ -65,44 +58,7 @@ app.post('/zip', (req, res) => {
 
 app.post('/links', (req, res) => {
   const list = req.body.list;
-  // const scrape = () => {
-  //   const arr = [];
-  //   list.map(movie => {
-  //     if (movie.link) {
-  //       scrapeIt(movie.link, {
-  //         avatar: {
-  //           selector: '.moviePoster img',
-  //           attr: 'src'
-  //         }
-  //       })
-  //       .then(({ data, response }) => {
-  //         if (response.statusCode !== 200) {
-  //           // reject('data');
-  //         }
-  //         // console.log(data);
-  //         if (data.avatar) {
-  //           movie.image = data.avatar;
-  //         }
-  //         arr.push(movie);
-  //         // console.log(movie);
-  //         // resolve(movie);
-  //         return movie;
-  //       });
-  //     }
-  //     console.log(arr);
-  //     return arr;
-  //   })
-  // }
-
-  // const build = async () => {
-  //   const test = await scrape();
-  //   console.log(test);
-  // }
-  // build().then((results) => {
-  //   console.log(results);
-  // })
   
-
   const scrapeABunchOfStuff = (stuff) => {
     Promise.all(stuff.map((thing) => {
       if (thing.link) {
@@ -135,7 +91,10 @@ app.post('/links', (req, res) => {
         console.log('reach');
         console.log('res', stuffWithImages);
         res.send(stuffWithImages);
-      });
+      })
+      .catch((err) => {
+        console.log(err)
+      })
   };
   scrapeABunchOfStuff(list);
   
@@ -176,8 +135,8 @@ app.get('/movie/:rootId', (req, res) => {
         build.push(data[i]);
       }
     }
-
-    res.send(build);
+    console.log(build[0]);
+    res.send(build[0]);
   });
 });
 
@@ -189,9 +148,22 @@ app.post('/meter', (req, res) => {
   console.log(req.body);
 });
 
-app.post('/category', (req, res) => {
+app.post('/category/:id', (req, res) => {
 
 });
+
+app.get('/categoryList', (req, res) => {
+  const list = {
+    1: 'Do NOT Watch with Mom',
+    2: 'Go see with the Family',
+    3: 'Boy Night Kinda Movie',
+    4: 'Girls Night Out',
+    5: 'Date Night',
+  };
+
+  res.send(list);
+  
+})
 
 app.listen(port, () => {
   console.log(`Listening on port: ${port}`);
