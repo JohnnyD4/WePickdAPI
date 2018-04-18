@@ -29,29 +29,31 @@ app.post('/zip', (req, res) => {
     if (err) throw err;
 
     const data = JSON.parse(body);
-    const build = data.map(movie => ({ id: movie.rootId, title: movie.title, link: movie.showtimes[0].ticketURI }));
-
-    const done = build.map(movie => {
-      // console.log(movie.link);
-      if (movie.link) {
-        scrapeIt(movie.link, {
-          avatar: {
-            selector: '.moviePoster img',
-            attr: 'src'
-          }
-        }, (err , { data }) => {
-          if (data.avatar) {
-            movie.image = data.avatar;
-          }
-          // console.log(movie);
-          return movie;
-        })
-      }
-
-      return movie;
+    model.checkDB(data, (res) => {
+      console.log('R E S', res);
     })
-    console.log(done);
-      res.send(done);
+    const build = data.map(movie => ({ id: movie.rootId, title: movie.title, link: movie.showtimes[0].ticketURI }));
+    console.log('BUILD');
+    // const done = build.map(movie => {
+    //   if (movie.link) {
+    //     scrapeIt(movie.link, {
+    //       avatar: {
+    //         selector: '.moviePoster img',
+    //         attr: 'src'
+    //       }
+    //     }, (err , { data }) => {
+    //       if (data.avatar) {
+    //         movie.image = data.avatar;
+    //       }
+
+    //       return movie;
+    //     })
+    //   }
+
+    //   return movie;
+    // })
+    // console.log(done);
+      res.send(build);
 
   });
 });
@@ -60,11 +62,12 @@ app.post('/links', (req, res) => {
   const list = req.body.list;
   
   const scrapeABunchOfStuff = (stuff) => {
+    // console.log(list);
     Promise.all(stuff.map((thing) => {
       if (thing.link) {
         return scrapeIt(thing.link, {
           avatar: {
-            selector: '.movie-details img',
+            selector: '.movie-details img' || '.moviePoster img',
             attr: 'src'
           },
         }).then(({ data, response }) => {
@@ -78,7 +81,7 @@ app.post('/links', (req, res) => {
         })
           .then(image => {
             Object.assign({}, thing, { image })
-            // console.log(thing);
+
             return thing;
           })
           .catch((err) => {
@@ -88,8 +91,7 @@ app.post('/links', (req, res) => {
       }
     }))
       .then((stuffWithImages) => {
-        console.log('reach');
-        console.log('res', stuffWithImages);
+        console.log(stuffWithImages);
         res.send(stuffWithImages);
       })
       .catch((err) => {
@@ -167,4 +169,13 @@ app.get('/categoryList', (req, res) => {
 
 app.listen(port, () => {
   console.log(`Listening on port: ${port}`);
+
+  scrapeIt('http://www.fandango.com/tms.asp?t=AAMDD&m=184698&d=2018-04-17', {
+    avatar: {
+      selector: '.moviePoster img' || '.moviePosterImage img',
+      attr: 'src'
+    },
+  }).then(({ data, response }) => {
+    console.log(data);
+  })
 });
